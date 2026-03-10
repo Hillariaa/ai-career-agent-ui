@@ -14,7 +14,7 @@ export default function Home() {
 
     setLoading(true);
 
-    const res = await fetch("http://127.0.0.1:8001/automate", {
+    const res = await fetch("https://ai-automation-agent.onrender.com/automate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
