@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background:
+    radial-gradient(circle at 15% 20%, rgba(168,85,247,0.18), transparent 40%),
+    radial-gradient(circle at 85% 0%, rgba(34,211,238,0.18), transparent 40%),
+    radial-gradient(circle at 50% 90%, rgba(99,102,241,0.12), transparent 40%),
+    linear-gradient(180deg, #020617 0%, #020617 40%, #030712 100%);
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, transparent 60%, rgba(0,0,0,0.6));
+  pointer-events: none;
+}
+
+.grid-background {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+
+  background-size: 80px 80px;
+}
