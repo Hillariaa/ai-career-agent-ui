@@ -19,7 +19,7 @@ export default function Home() {
       setActions([])
   
       const res = await fetch(
-        "https://ai-automation-agent.onrender.com/automate",
+        "https://ai-automation-agent.onrender.com/docs/automate",
         {
           method: "POST",
           headers: {
