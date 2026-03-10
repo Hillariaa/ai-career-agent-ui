@@ -14,7 +14,7 @@ export default function Home() {
     // add recruiter message
     setMessages(prev => [...prev, { role: "user", text: message }]);
 
-    const res = await fetch("http://127.0.0.1:8001/automate", {
+    const res = await fetch("https://ai-automation-agent.onrender.com/automate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -49,7 +49,7 @@ export default function Home() {
       <div className="w-full max-w-2xl p-10 rounded-3xl backdrop-blur-xl bg-white/5 border border-white/10 shadow-2xl">
 
         <h1 className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-purple-400 to-cyan-400 text-transparent bg-clip-text">
-          Hilary AI Career Agent
+          Hilary's AI Career Agent
         </h1>
 
         <p className="text-center text-gray-300 mb-10">
