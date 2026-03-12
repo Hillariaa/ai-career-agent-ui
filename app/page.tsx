@@ -150,8 +150,8 @@ export default function Home() {
           <div className="flex flex-wrap gap-4 mt-6 justify-center">
 
             {actions.map((action, index) => (
-
-              action.url && action.url.endsWith(".mp3") ? (
+              
+              action.url && action.url.includes(".mp3") ? (
 
                 <audio key={index} controls className="mt-4">
                   <source src={action.url} type="audio/mpeg" />
