@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 export default function Home() {
 
@@ -8,6 +8,12 @@ export default function Home() {
   const [actions, setActions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [userInput, setUserInput] = useState("");
+
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   async function sendMessage(message: string) {
 
@@ -73,10 +79,8 @@ export default function Home() {
         </h1>
 
         <p className="text-center text-gray-300 mb-6">
-          Ask about Hilary's AI systems, projects, or experience.
+          Ask about Hilary's AI systems, projects, or engineering experience.
         </p>
-
-        {/* Chat messages */}
 
         <div className="space-y-4 mb-6 max-h-[400px] overflow-y-auto">
 
@@ -90,9 +94,11 @@ export default function Home() {
                   : "bg-black/40"
               }`}
             >
+
               <div className="whitespace-pre-line">
                 {msg.content}
-                </div>
+              </div>
+
             </div>
 
           ))}
@@ -103,9 +109,9 @@ export default function Home() {
             </div>
           )}
 
-        </div>
+          <div ref={bottomRef}></div>
 
-        {/* Input */}
+        </div>
 
         <div className="flex gap-2 mb-4">
 
@@ -124,8 +130,6 @@ export default function Home() {
           </button>
 
         </div>
-
-        {/* Quick buttons */}
 
         <div className="grid grid-cols-2 gap-4 mb-4">
 
@@ -158,15 +162,13 @@ export default function Home() {
           </button>
 
           <button
-          onClick={() => sendMessage("audio")}
-          className="px-6 py-3 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition col-span-2"
+            onClick={() => sendMessage("audio")}
+            className="px-6 py-3 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition col-span-2"
           >
-            ▶ Hear Hilary Introduce Herself 
-            </button>
+            ▶ Hear Hilary Introduce Herself
+          </button>
 
         </div>
-
-        {/* Actions returned from API */}
 
         {actions.length > 0 && (
 
@@ -186,6 +188,7 @@ export default function Home() {
                   key={index}
                   href={action.url}
                   target="_blank"
+                  rel="noopener noreferrer"
                   className="px-6 py-3 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition"
                 >
                   {action.label}
