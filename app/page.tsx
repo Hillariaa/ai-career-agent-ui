@@ -19,7 +19,6 @@ export default function Home() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // INIT USER
   useEffect(() => {
     async function init() {
 
@@ -130,7 +129,7 @@ export default function Home() {
           Explore Hilary’s AI systems, projects, and engineering experience.
         </p>
 
-        {/* EMAIL CAPTURE */}
+        {/* EMAIL */}
         {!emailSaved && (
           <div className="mb-6 p-4 border border-white/10 rounded-lg bg-white/5">
 
@@ -212,10 +211,49 @@ export default function Home() {
           </button>
         </div>
 
-        {/* 🔥 ACTION BUTTONS RESTORED */}
-        {actions.length > 0 && (
+        {/* DEFAULT BUTTONS (INCLUDING AUDIO 🔥) */}
+        <div className="grid grid-cols-2 gap-4 mb-4">
 
-          <div className="flex flex-wrap gap-4 justify-center mt-4">
+          <button
+            onClick={() => sendMessage("What AI systems has Hilary built?")}
+            className="px-6 py-3 bg-white/5 border border-white/10 rounded-lg"
+          >
+            AI Systems
+          </button>
+
+          <button
+            onClick={() => sendMessage("What tech stack does Hilary use?")}
+            className="px-6 py-3 bg-white/5 border border-white/10 rounded-lg"
+          >
+            Tech Stack
+          </button>
+
+          <button
+            onClick={() => sendMessage("portfolio")}
+            className="px-6 py-3 bg-white/5 border border-white/10 rounded-lg"
+          >
+            Portfolio
+          </button>
+
+          <button
+            onClick={() => sendMessage("schedule")}
+            className="px-6 py-3 bg-white/5 border border-white/10 rounded-lg"
+          >
+            Schedule Call
+          </button>
+
+          <button
+            onClick={() => sendMessage("audio")}
+            className="px-6 py-3 bg-white/5 border border-white/10 rounded-lg col-span-2"
+          >
+            ▶ Hear Hilary Introduce Herself
+          </button>
+
+        </div>
+
+        {/* ACTIONS */}
+        {actions.length > 0 && (
+          <div className="flex flex-wrap gap-4 justify-center">
 
             {actions.map((action, index) => (
 
@@ -232,7 +270,7 @@ export default function Home() {
                   href={action.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-6 py-3 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition"
+                  className="px-6 py-3 bg-white/5 border border-white/10 rounded-lg"
                 >
                   {action.label}
                 </a>
@@ -242,7 +280,7 @@ export default function Home() {
                 <button
                   key={index}
                   onClick={() => sendMessage(action.message)}
-                  className="px-6 py-3 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition"
+                  className="px-6 py-3 bg-white/5 border border-white/10 rounded-lg"
                 >
                   {action.label}
                 </button>
@@ -252,7 +290,6 @@ export default function Home() {
             ))}
 
           </div>
-
         )}
 
       </div>
