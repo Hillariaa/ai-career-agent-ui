@@ -10,6 +10,9 @@ export default function Home() {
   const [userInput, setUserInput] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
 
+  const [email, setEmail] = useState("");
+  const [emailSaved, setEmailSaved] = useState(false);
+
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -94,9 +97,23 @@ export default function Home() {
     setLoading(false);
   }
 
-  function handleAsk() {
-    if (!userInput.trim()) return;
-    sendMessage(userInput);
+  async function saveEmail() {
+
+    if (!email || !userId) return;
+
+    await fetch(
+      "https://ai-automation-agent.onrender.com/capture-email",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: userId,
+          email: email
+        })
+      }
+    );
+
+    setEmailSaved(true);
   }
 
   return (
@@ -109,9 +126,47 @@ export default function Home() {
         </h1>
 
         <p className="text-center text-gray-300 mb-6">
-          Ask about Hilary's AI systems or get career help.
+          Explore Hilary’s AI systems, projects, and engineering experience.
         </p>
 
+        {/* EMAIL CAPTURE */}
+        {!emailSaved && (
+          <div className="mb-6 p-4 border border-white/10 rounded-lg bg-white/5">
+
+            <p className="text-sm text-gray-300 mb-2">
+              Want a deeper walkthrough or follow-up?
+            </p>
+
+            <div className="flex gap-2">
+              <input
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
+                className="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white"
+              />
+
+              <button
+                onClick={saveEmail}
+                className="px-4 py-2 bg-white/10 border border-white/10 rounded-lg"
+              >
+                Save
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-400 mt-2">
+              Only used to follow up about Hilary’s AI systems. No spam.
+            </p>
+
+          </div>
+        )}
+
+        {emailSaved && (
+          <div className="mb-6 text-green-400 text-sm text-center">
+            ✅ Thanks — I’ll follow up with more details.
+          </div>
+        )}
+
+        {/* CHAT */}
         <div className="space-y-4 mb-6 max-h-[400px] overflow-y-auto">
 
           {messages.map((msg, i) => (
@@ -129,85 +184,26 @@ export default function Home() {
             </div>
           ))}
 
-          {loading && (
-            <div className="text-gray-400 animate-pulse">
-              Assistant is typing...
-            </div>
-          )}
-
           <div ref={bottomRef}></div>
+
         </div>
 
+        {/* INPUT */}
         <div className="flex gap-2 mb-4">
           <input
             value={userInput}
             onChange={(e) => setUserInput(e.target.value)}
-            placeholder="Ask something..."
+            placeholder="Ask about Hilary’s AI work..."
             className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white"
           />
 
           <button
-            onClick={handleAsk}
+            onClick={() => sendMessage(userInput)}
             className="px-6 py-3 bg-white/10 border border-white/10 rounded-lg"
           >
             Ask
           </button>
         </div>
-
-        {/*  QUICK BUTTONS (RESTORED AUDIO BUTTON) */}
-        <div className="grid grid-cols-2 gap-4 mb-4">
-
-          <button onClick={() => sendMessage("tech stack")} className="btn">Tech Stack</button>
-          <button onClick={() => sendMessage("projects")} className="btn">AI Systems</button>
-          <button onClick={() => sendMessage("portfolio")} className="btn">Portfolio</button>
-          <button onClick={() => sendMessage("schedule")} className="btn">Schedule Call</button>
-
-          <button
-            onClick={() => sendMessage("audio")}
-            className="btn col-span-2"
-          >
-            ▶ Hear Hilary Introduce Herself
-          </button>
-        </div>
-
-        {/*  ACTIONS */}
-        {actions.length > 0 && (
-          <div className="flex flex-wrap gap-4 justify-center">
-
-            {actions.map((action, index) => (
-
-              action.url && action.url.includes(".mp3") ? (
-
-                <audio key={index} controls>
-                  <source src={action.url} type="audio/mpeg" />
-                </audio>
-
-              ) : action.url ? (
-
-                <a
-                  key={index}
-                  href={action.url}
-                  target="_blank"
-                  className="px-6 py-3 bg-white/5 border border-white/10 rounded-lg"
-                >
-                  {action.label}
-                </a>
-
-              ) : (
-
-                <button
-                  key={index}
-                  onClick={() => sendMessage(action.message)}
-                  className="px-6 py-3 bg-white/5 border border-white/10 rounded-lg"
-                >
-                  {action.label}
-                </button>
-
-              )
-            ))}
-
-          </div>
-        )}
 
       </div>
     </main>
