@@ -19,6 +19,7 @@ export default function Home() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // INIT USER
   useEffect(() => {
     async function init() {
 
@@ -184,6 +185,12 @@ export default function Home() {
             </div>
           ))}
 
+          {loading && (
+            <div className="text-gray-400 animate-pulse">
+              Assistant is typing...
+            </div>
+          )}
+
           <div ref={bottomRef}></div>
 
         </div>
@@ -205,7 +212,51 @@ export default function Home() {
           </button>
         </div>
 
+        {/* 🔥 ACTION BUTTONS RESTORED */}
+        {actions.length > 0 && (
+
+          <div className="flex flex-wrap gap-4 justify-center mt-4">
+
+            {actions.map((action, index) => (
+
+              action.url && action.url.includes(".mp3") ? (
+
+                <audio key={index} controls>
+                  <source src={action.url} type="audio/mpeg" />
+                </audio>
+
+              ) : action.url ? (
+
+                <a
+                  key={index}
+                  href={action.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-6 py-3 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition"
+                >
+                  {action.label}
+                </a>
+
+              ) : (
+
+                <button
+                  key={index}
+                  onClick={() => sendMessage(action.message)}
+                  className="px-6 py-3 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition"
+                >
+                  {action.label}
+                </button>
+
+              )
+
+            ))}
+
+          </div>
+
+        )}
+
       </div>
+
     </main>
   );
 }
