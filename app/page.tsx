@@ -16,7 +16,6 @@ export default function Home() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // INIT USER
   useEffect(() => {
     async function init() {
 
@@ -31,11 +30,7 @@ export default function Home() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            source,
-            persona,
-            campaign
-          }),
+          body: JSON.stringify({ source, persona, campaign }),
         }
       );
 
@@ -44,7 +39,6 @@ export default function Home() {
       localStorage.setItem("user_id", data.user_id);
       setUserId(data.user_id);
 
-      // FIRST MESSAGE
       fetchInitial(data.user_id);
     }
 
@@ -53,80 +47,50 @@ export default function Home() {
 
   async function fetchInitial(id: string) {
 
-    setLoading(true);
-
     const res = await fetch(
       "https://ai-automation-agent.onrender.com/automate",
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          message: "start",
-          user_id: id
-        })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: "start", user_id: id })
       }
     );
 
     const data = await res.json();
 
-    setMessages([
-      { role: "assistant", content: data.message }
-    ]);
-
+    setMessages([{ role: "assistant", content: data.message }]);
     setActions(data.actions || []);
-    setLoading(false);
   }
 
   async function sendMessage(message: string) {
 
     const id = userId || localStorage.getItem("user_id");
+    if (!id) return;
 
-    if (!id) {
-      console.error("No user_id found");
-      return;
-    }
-
-    const newMessages = [
-      ...messages,
-      { role: "user", content: message }
-    ];
+    const newMessages = [...messages, { role: "user", content: message }];
 
     setMessages(newMessages);
     setUserInput("");
     setLoading(true);
     setActions([]);
 
-    try {
+    const res = await fetch(
+      "https://ai-automation-agent.onrender.com/automate",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message, user_id: id })
+      }
+    );
 
-      const res = await fetch(
-        "https://ai-automation-agent.onrender.com/automate",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            message,
-            user_id: id
-          })
-        }
-      );
+    const data = await res.json();
 
-      const data = await res.json();
+    setMessages([
+      ...newMessages,
+      { role: "assistant", content: data.message }
+    ]);
 
-      setMessages([
-        ...newMessages,
-        { role: "assistant", content: data.message }
-      ]);
-
-      setActions(data.actions || []);
-
-    } catch (err) {
-      console.error(err);
-    }
-
+    setActions(data.actions || []);
     setLoading(false);
   }
 
@@ -190,10 +154,36 @@ export default function Home() {
           </button>
         </div>
 
+        {/*  QUICK BUTTONS (RESTORED AUDIO BUTTON) */}
+        <div className="grid grid-cols-2 gap-4 mb-4">
+
+          <button onClick={() => sendMessage("tech stack")} className="btn">Tech Stack</button>
+          <button onClick={() => sendMessage("projects")} className="btn">AI Systems</button>
+          <button onClick={() => sendMessage("portfolio")} className="btn">Portfolio</button>
+          <button onClick={() => sendMessage("schedule")} className="btn">Schedule Call</button>
+
+          <button
+            onClick={() => sendMessage("audio")}
+            className="btn col-span-2"
+          >
+            ▶ Hear Hilary Introduce Herself
+          </button>
+        </div>
+
+        {/*  ACTIONS */}
         {actions.length > 0 && (
           <div className="flex flex-wrap gap-4 justify-center">
-            {actions.map((action, index) =>
-              action.url ? (
+
+            {actions.map((action, index) => (
+
+              action.url && action.url.includes(".mp3") ? (
+
+                <audio key={index} controls>
+                  <source src={action.url} type="audio/mpeg" />
+                </audio>
+
+              ) : action.url ? (
+
                 <a
                   key={index}
                   href={action.url}
@@ -202,7 +192,9 @@ export default function Home() {
                 >
                   {action.label}
                 </a>
+
               ) : (
+
                 <button
                   key={index}
                   onClick={() => sendMessage(action.message)}
@@ -210,10 +202,13 @@ export default function Home() {
                 >
                   {action.label}
                 </button>
+
               )
-            )}
+            ))}
+
           </div>
         )}
+
       </div>
     </main>
   );
