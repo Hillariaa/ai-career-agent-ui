@@ -16,6 +16,7 @@ export default function Home() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // INIT USER
   useEffect(() => {
     async function init() {
 
@@ -43,7 +44,7 @@ export default function Home() {
       localStorage.setItem("user_id", data.user_id);
       setUserId(data.user_id);
 
-      //  ONLY system message (no duplicate user message)
+      // FIRST MESSAGE
       fetchInitial(data.user_id);
     }
 
@@ -82,7 +83,10 @@ export default function Home() {
 
     const id = userId || localStorage.getItem("user_id");
 
-    if (!id) return;
+    if (!id) {
+      console.error("No user_id found");
+      return;
+    }
 
     const newMessages = [
       ...messages,
@@ -94,28 +98,35 @@ export default function Home() {
     setLoading(true);
     setActions([]);
 
-    const res = await fetch(
-      "https://ai-automation-agent.onrender.com/automate",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          message,
-          user_id: id
-        })
-      }
-    );
+    try {
 
-    const data = await res.json();
+      const res = await fetch(
+        "https://ai-automation-agent.onrender.com/automate",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            message,
+            user_id: id
+          })
+        }
+      );
 
-    setMessages([
-      ...newMessages,
-      { role: "assistant", content: data.message }
-    ]);
+      const data = await res.json();
 
-    setActions(data.actions || []);
+      setMessages([
+        ...newMessages,
+        { role: "assistant", content: data.message }
+      ]);
+
+      setActions(data.actions || []);
+
+    } catch (err) {
+      console.error(err);
+    }
+
     setLoading(false);
   }
 
