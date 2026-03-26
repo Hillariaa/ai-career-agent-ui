@@ -13,27 +13,25 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [emailSaved, setEmailSaved] = useState(false);
 
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [feedback, setFeedback] = useState("");
+  const [feedbackSaved, setFeedbackSaved] = useState(false);
+
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // INIT USER
   useEffect(() => {
     async function init() {
-
-      const params = new URLSearchParams(window.location.search);
-
-      const source = params.get("source");
-      const persona = params.get("persona");
-      const campaign = params.get("campaign");
-
       const res = await fetch(
         "https://ai-automation-agent.onrender.com/init",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ source, persona, campaign }),
+          body: JSON.stringify({})
         }
       );
 
@@ -42,58 +40,59 @@ export default function Home() {
       localStorage.setItem("user_id", data.user_id);
       setUserId(data.user_id);
 
-      fetchInitial(data.user_id);
+      sendMessage("start", data.user_id);
     }
 
     init();
   }, []);
 
-  async function fetchInitial(id: string) {
+  async function sendMessage(message: string, idOverride?: string) {
 
-    const res = await fetch(
-      "https://ai-automation-agent.onrender.com/automate",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: "start", user_id: id })
-      }
-    );
-
-    const data = await res.json();
-
-    setMessages([{ role: "assistant", content: data.message }]);
-    setActions(data.actions || []);
-  }
-
-  async function sendMessage(message: string) {
-
-    const id = userId || localStorage.getItem("user_id");
+    const id = idOverride || userId;
     if (!id) return;
 
-    const newMessages = [...messages, { role: "user", content: message }];
+    const newMessages = [
+      ...messages,
+      { role: "user", content: message }
+    ];
 
     setMessages(newMessages);
     setUserInput("");
     setLoading(true);
     setActions([]);
 
-    const res = await fetch(
-      "https://ai-automation-agent.onrender.com/automate",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, user_id: id })
-      }
-    );
+    try {
 
-    const data = await res.json();
+      const res = await fetch(
+        "https://ai-automation-agent.onrender.com/automate",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message, user_id: id })
+        }
+      );
 
-    setMessages([
-      ...newMessages,
-      { role: "assistant", content: data.message }
-    ]);
+      const data = await res.json();
 
-    setActions(data.actions || []);
+      setMessages([
+        ...newMessages,
+        { role: "assistant", content: data.message }
+      ]);
+
+      setActions(data.actions || []);
+
+    } catch (error) {
+
+      setMessages([
+        ...newMessages,
+        {
+          role: "assistant",
+          content: "The AI agent is waking up. Please try again."
+        }
+      ]);
+
+    }
+
     setLoading(false);
   }
 
@@ -116,6 +115,25 @@ export default function Home() {
     setEmailSaved(true);
   }
 
+  async function submitFeedback() {
+
+    if (!feedback || !userId) return;
+
+    await fetch(
+      "https://ai-automation-agent.onrender.com/feedback",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: userId,
+          feedback: feedback
+        })
+      }
+    );
+
+    setFeedbackSaved(true);
+  }
+
   return (
     <main className="min-h-screen flex items-center justify-center text-white grid-background">
 
@@ -126,43 +144,38 @@ export default function Home() {
         </h1>
 
         <p className="text-center text-gray-300 mb-6">
-          Explore Hilary’s AI systems, projects, and engineering experience.
+          Explore Hilary's AI systems, projects, and engineering experience.
         </p>
 
-        {/* EMAIL */}
+        {/* EMAIL CAPTURE */}
         {!emailSaved && (
-          <div className="mb-6 p-4 border border-white/10 rounded-lg bg-white/5">
-
+          <div className="mb-6">
             <p className="text-sm text-gray-300 mb-2">
               Want a deeper walkthrough or follow-up?
             </p>
-
             <div className="flex gap-2">
               <input
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
-                className="flex-1 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white"
+                className="flex-1 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-400"
               />
-
               <button
                 onClick={saveEmail}
-                className="px-4 py-2 bg-white/10 border border-white/10 rounded-lg"
+                className="px-4 py-2 bg-white/10 rounded-lg hover:bg-white/20"
               >
                 Save
               </button>
             </div>
-
-            <p className="text-xs text-gray-400 mt-2">
+            <p className="text-xs text-gray-500 mt-2">
               Only used to follow up about Hilary’s AI systems. No spam.
             </p>
-
           </div>
         )}
 
         {emailSaved && (
-          <div className="mb-6 text-green-400 text-sm text-center">
-            ✅ Thanks — I’ll follow up with more details.
+          <div className="text-green-400 mb-6">
+             Thanks — I’ll follow up with more details.
           </div>
         )}
 
@@ -199,61 +212,74 @@ export default function Home() {
           <input
             value={userInput}
             onChange={(e) => setUserInput(e.target.value)}
-            placeholder="Ask about Hilary’s AI work..."
-            className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white"
+            placeholder="Ask about Hilary's AI work..."
+            className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400"
           />
 
           <button
             onClick={() => sendMessage(userInput)}
-            className="px-6 py-3 bg-white/10 border border-white/10 rounded-lg"
+            className="px-6 py-3 bg-white/10 border border-white/10 rounded-lg hover:bg-white/20"
           >
             Ask
           </button>
         </div>
 
-        {/* DEFAULT BUTTONS (INCLUDING AUDIO 🔥) */}
+        {/* DEFAULT BUTTONS */}
         <div className="grid grid-cols-2 gap-4 mb-4">
 
-          <button
-            onClick={() => sendMessage("What AI systems has Hilary built?")}
-            className="px-6 py-3 bg-white/5 border border-white/10 rounded-lg"
-          >
+          <button onClick={() => sendMessage("AI systems")} className="btn">
             AI Systems
           </button>
 
-          <button
-            onClick={() => sendMessage("What tech stack does Hilary use?")}
-            className="px-6 py-3 bg-white/5 border border-white/10 rounded-lg"
-          >
+          <button onClick={() => sendMessage("tech stack")} className="btn">
             Tech Stack
           </button>
 
-          <button
-            onClick={() => sendMessage("portfolio")}
-            className="px-6 py-3 bg-white/5 border border-white/10 rounded-lg"
-          >
+          <button onClick={() => sendMessage("portfolio")} className="btn">
             Portfolio
           </button>
 
-          <button
-            onClick={() => sendMessage("schedule")}
-            className="px-6 py-3 bg-white/5 border border-white/10 rounded-lg"
-          >
+          <button onClick={() => sendMessage("schedule")} className="btn">
             Schedule Call
           </button>
 
           <button
             onClick={() => sendMessage("audio")}
-            className="px-6 py-3 bg-white/5 border border-white/10 rounded-lg col-span-2"
+            className="btn col-span-2"
           >
             ▶ Hear Hilary Introduce Herself
           </button>
 
         </div>
 
-        {/* ACTIONS */}
+        {/* RECRUITER BUTTONS */}
+        <div className="flex flex-wrap gap-3 justify-center mb-6">
+
+          <button onClick={() => sendMessage("key projects")} className="btn">
+            Key Projects
+          </button>
+
+          <button onClick={() => sendMessage("why hire hilary")} className="btn">
+            Why hire Hilary
+          </button>
+
+          <button onClick={() => sendMessage("portfolio")} className="btn">
+            View Portfolio
+          </button>
+
+          <button onClick={() => sendMessage("cv")} className="btn">
+            Download CV
+          </button>
+
+          <button onClick={() => sendMessage("schedule")} className="btn">
+            Discuss role fit (15 min)
+          </button>
+
+        </div>
+
+        {/* ACTIONS (links + audio) */}
         {actions.length > 0 && (
-          <div className="flex flex-wrap gap-4 justify-center">
+          <div className="flex flex-wrap gap-4 justify-center mb-6">
 
             {actions.map((action, index) => (
 
@@ -269,8 +295,7 @@ export default function Home() {
                   key={index}
                   href={action.url}
                   target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-6 py-3 bg-white/5 border border-white/10 rounded-lg"
+                  className="btn"
                 >
                   {action.label}
                 </a>
@@ -280,7 +305,7 @@ export default function Home() {
                 <button
                   key={index}
                   onClick={() => sendMessage(action.message)}
-                  className="px-6 py-3 bg-white/5 border border-white/10 rounded-lg"
+                  className="btn"
                 >
                   {action.label}
                 </button>
@@ -292,7 +317,58 @@ export default function Home() {
           </div>
         )}
 
+        {/* FEEDBACK */}
+        <div className="text-center">
+
+          {!feedbackOpen && (
+            <button
+              onClick={() => setFeedbackOpen(true)}
+              className="text-sm text-gray-400 underline"
+            >
+              💬 Give feedback
+            </button>
+          )}
+
+          {feedbackOpen && !feedbackSaved && (
+            <div className="mt-4">
+              <textarea
+                value={feedback}
+                onChange={(e) => setFeedback(e.target.value)}
+                placeholder="What did you think about this AI assistant?"
+                className="w-full p-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-400"
+              />
+
+              <button
+                onClick={submitFeedback}
+                className="mt-2 px-4 py-2 bg-white/10 rounded-lg hover:bg-white/20"
+              >
+                Submit
+              </button>
+            </div>
+          )}
+
+          {feedbackSaved && (
+            <div className="text-green-400 mt-4">
+               Thanks for your feedback!
+            </div>
+          )}
+
+        </div>
+
       </div>
+
+      <style jsx>{`
+        .btn {
+          padding: 12px;
+          border-radius: 10px;
+          background: rgba(255,255,255,0.05);
+          border: 1px solid rgba(255,255,255,0.1);
+          transition: 0.2s;
+        }
+        .btn:hover {
+          background: rgba(255,255,255,0.1);
+        }
+      `}</style>
 
     </main>
   );
